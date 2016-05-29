@@ -1,0 +1,26 @@
+{
+  "name": "MovieBot",
+  "version": "1.0.0",
+  "description": "The awesome MovieBot!",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fajeh/MovieBot.git"
+  },
+  "author": "Raphaela Heil, Eike Dittmer, Torben Indorf, Fabian Jeglinski",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Fajeh/MovieBot/issues"
+  },
+  "homepage": "https://github.com/Fajeh/MovieBot",
+  "dependencies": {
+    "botbuilder": "^0.10.2",
+    "restify": "^4.0.4",
+    "moviedb": "^0.2.3",
+    "requestify": "latest",
+    "dateformat": "latest"
+  }
+}
