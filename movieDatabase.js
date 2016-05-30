@@ -107,6 +107,26 @@ module.exports = new function(){
                 console.error("An exceptions was thrown in sortMovieOrSeries.");
             }
         },
+        searchSimilarSeries: function (series, callback) {
+            movieDB.searchTv({query: series}, function (err, res) {
+
+                // if an error occurs
+                if (err != null) {
+                    callback({error: true}); // ends the call
+                    return;
+                }
+
+                movieDB.tvSimilar({id: res.results[0].id}, function (err, res) {
+
+                    // if an error occurs
+                    if (err != null) {
+                        callback({error: true});
+                        return; // ends the call
+                    }
+                    callback(res.results);
+                })
+            });
+        },
         searchSimilarMovie: function (movie, callback) {
             movieDB.searchMovie({query: movie}, function (err, res) {
 
