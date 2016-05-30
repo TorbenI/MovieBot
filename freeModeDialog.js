@@ -38,7 +38,7 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
         function (session, args, next) {
                 movieDatabase.bestMoviesInYear(builder, args, function (response) {
                     var videoType = builder.EntityRecognizer.findEntity(args.entities, 'VideoType');
-                    if(response.length > 0) { //Output result
+                    if(response && response.length > 0) { //Output result
                         if(videoType.entity == 'movies' || videoType.entity == 'movie') {
                             printResults(session, response, printMode.MOVIE);
                         }
@@ -49,8 +49,10 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
                             printResults(session, response, printMode.MOVIE);
                         }
                     }
-                    else
+                    else {
+                        console.log('Nothing found...');
                         session.send("Sorry :-(. We haven't found anything for you.");
+                    }
                 });
         },
         function (session, results) {
@@ -69,11 +71,11 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
     //Call the MovieDB and search for the 3 best movies of the actor
     function searchForActor(session, args, builder) {
         movieDatabase.searchActor(builder, args, function(response) {
-            if(response.length > 0) { //Output result
+            if(response && response.length > 0) { //Output result
                 printResults(session, response, printMode.MOVIE);
             }
             else
-                session.send("Sorry :-(. We haven't found any movies with "  + firstName.entity + " " + lastName.entity);
+                session.send("Sorry :-(. We haven't found anything for you");
         });
     }
 

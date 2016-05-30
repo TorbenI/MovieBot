@@ -134,14 +134,13 @@ module.exports = new function(){
             var lastName = builder.EntityRecognizer.findEntity(args.entities, 'Actor::Lastname');
             var videoType = builder.EntityRecognizer.findEntity(args.entities, 'VideoType');
             var genre = builder.EntityRecognizer.findEntity(args.entities, 'Genre');
+            var releaseYear = builder.EntityRecognizer.findEntity(args.entities, 'ReleaseYear');
 
             movieDB.searchPerson({query: firstName.entity + ' ' + lastName.entity}, function (err, res) {
                 var genreID = -1;
                 var type;
                 if(genre)
                     genreID = _movieGenreToID(genre.entity);
-
-                console.log(genreID);
 
                 if(videoType == 'movies' || videoType == 'movie')
                     type = 'movie';
@@ -155,16 +154,18 @@ module.exports = new function(){
                     var requestify = require('requestify');
                     var getURL = API_URL + '/discover/' + type + '?with_genres=' + genreID + '&with_cast=' + res.results[0].id + '&certification_country=ger&sort_by=popularity.desc' + '&api_key=' + API_KEY;
 
-                    console.log(getURL);
-
                     if(genreID != -1)
                         getURL = getURL + '&with_genres=' + genreID;
+
+                    if(releaseYear)
+                        getURL = getURL + '&primary_release_year=' + releaseYear.entity;
+
+                    console.log(getURL);
 
                      requestify.get(getURL).then(function(response) {
                         // Get the response body
                         var body = response.getBody();
                         var movieResult = body.results;
-
                         if(movieResult.length > 0) {
                             var result = [];
 
@@ -173,6 +174,10 @@ module.exports = new function(){
                             }
 
                         return callback(result);
+                        }
+                         else {
+                            console.log('Error');
+                            return callback([]);
                         }
                      });
                 } else {
