@@ -73,7 +73,7 @@ module.exports = new function(){
             return callback(null);
         }
     }
-    
+
     return{
 
         // sorts the result to a given value @param sortBy either desc or asc @param desc
@@ -136,7 +136,6 @@ module.exports = new function(){
             var genre = builder.EntityRecognizer.findEntity(args.entities, 'Genre');
 
             movieDB.searchPerson({query: firstName.entity + ' ' + lastName.entity}, function (err, res) {
-
                 var genreID = -1;
                 var type;
                 if(genre)
@@ -211,8 +210,7 @@ module.exports = new function(){
             });
         },
 
-        bestMoviesInYear: function(builder, callback) {
-
+        bestMoviesInYear: function(builder, args, callback) {
             var requestify = require('requestify');
             var type;
             var releaseYear = builder.EntityRecognizer.findEntity(args.entities, 'ReleaseYear');
@@ -221,7 +219,7 @@ module.exports = new function(){
 
             var genreID = -1;
             if(genre)
-                genreID = _movieGenreToID(genre);
+                genreID = _movieGenreToID(genre.entity);
 
             if(videoType == 'movies' || videoType == 'movie')
                 type = 'movie';
@@ -230,10 +228,12 @@ module.exports = new function(){
             else
                 type = 'movie';
 
-            var getURL = API_URL + '/discover/' + type + '?primary_release_year=' + releaseYear + '&certification_country=ger&sort_by=popularity.desc' + '&api_key=' + API_KEY;
+            var getURL = API_URL + '/discover/' + type + '?primary_release_year=' + releaseYear.entity + '&certification_country=ger&sort_by=popularity.desc' + '&api_key=' + API_KEY;
 
             if(genreID != -1)
                 getURL = getURL + '&with_genres=' + genreID;
+
+            console.log(getURL);
 
             requestify.get(getURL).then(function(response) {
                 // Get the response body

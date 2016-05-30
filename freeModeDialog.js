@@ -29,14 +29,15 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
 
     dialogFreeMode.on('considerActor', [
         function (session, args, next) {
+            console.log('considerActor');
             searchForActor(session, args, builder);
         }
     ]);
 
     dialogFreeMode.on('bestMoviesInYear', [
         function (session, args, next) {
-
-                movieDatabase.bestMoviesInYear(builder, function (response) {
+                movieDatabase.bestMoviesInYear(builder, args, function (response) {
+                    var videoType = builder.EntityRecognizer.findEntity(args.entities, 'VideoType');
                     if(response.length > 0) { //Output result
                         if(videoType.entity == 'movies' || videoType.entity == 'movie') {
                             printResults(session, response, printMode.MOVIE);
@@ -67,7 +68,6 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
 
     //Call the MovieDB and search for the 3 best movies of the actor
     function searchForActor(session, args, builder) {
-        console.log('SearchForActor');
         movieDatabase.searchActor(builder, args, function(response) {
             if(response.length > 0) { //Output result
                 printResults(session, response, printMode.MOVIE);
