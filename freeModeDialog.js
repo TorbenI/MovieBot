@@ -67,6 +67,7 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
 
     //Call the MovieDB and search for the 3 best movies of the actor
     function searchForActor(session, args, builder) {
+        console.log('SearchForActor');
         movieDatabase.searchActor(builder, args, function(response) {
             if(response.length > 0) { //Output result
                 printResults(session, response, printMode.MOVIE);
@@ -76,11 +77,38 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
         });
     }
 
+    /* Looks for similar movies
+     * This Intent is composed of several steps:
+     *
+     * 1. Find the Id from the suggested movie
+     * 2. Find the similar movies
+     * 3. Print the result
+     * */
+    dialogFreeMode.on('similarMoviesOrSeries', function (session, args, next) {
+        var movie = builder.EntityRecognizer.findEntity(args.entities, 'MovieOrSerie');
+        /* HIER FEHLT NOCH DIE UNTERSCHEIDUNG ZWISCHEN SERIE UND FILM*/
+        session.send('Ok. Let me see if I find a movie/Serie (!!!) that is similar to ' + movie.entity + '');
+
+        movieDatabase.searchSimilarMovie(movie.entity, function (response) {
+
+            if(!response.error) {
+                if (response.length > 0) {
+                    movieDatabase.sortMovieOrSeries(response,"popularity", true); // sorts the result desc
+                    printResults(session, response, printMode.MOVIE);
+                } else {
+                    session.send("I´m sorry. I couldn´t find any similar movie.");
+                }
+            }else{
+                session.send("Oh I´m sorry. Something unexpected happend. I couldn´t perform a search.");
+            }
+        });
+    });
+
     function printResults(session, response, mode) {
         session.send(' ');
         if(mode == printMode.MOVIE) {
             session.send("We have found some awesome movies or series for you: ");
-            for(var index = 0; index < response.length; ++index) {
+            for(var index = 0; index < response.length && index < CONFIG.NUMBER_OF_RETURN; ++index) {
                 var counter = index + 1;
                 session.send("(" + counter + ") " + response[index].title + ' (Popularity: '+ response[index].popularity + ')');
             }
@@ -88,14 +116,14 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
         else if(mode == printMode.SERIES)
         {
             session.send("We have found some awesome series for you: ");
-            for(var index = 0; index < response.length; ++index) {
+            for(var index = 0; index < response.length && index < CONFIG.NUMBER_OF_RETURN; ++index) {
                 var counter = index + 1;
                 session.send("(" + counter + ") " + response[index].name + ' (Popularity: '+ response[index].popularity + ')');
             }
         }
         else {
             session.send("We have found some awesome stuff for you: ");
-            for(var index = 0; index < response.length; ++index) {
+            for(var index = 0; index < response.length && index < CONFIG.NUMBER_OF_RETURN; ++index) {
                 var counter = index + 1;
                 session.send("(" + counter + ") " + response[index].title + ' (Popularity: '+ response[index].popularity + ')');
             }

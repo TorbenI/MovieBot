@@ -68,27 +68,81 @@ module.exports = new function(){
             }
             return callback(result);
         }
-        else
+        else {
             console.log('Error');
+            return callback(null);
+        }
     }
-
-
-
+    
     return{
+
+        // sorts the result to a given value @param sortBy either desc or asc @param desc
+        sortMovieOrSeries: function (movies, sortBy, desc) {
+            try {
+                if (desc == true) {
+
+                    movies.sort(function (a, b) { // desc sort
+                        if (a[sortBy] > b[sortBy]) {
+                            return -1;
+                        }
+                        if (a[sortBy] < b[sortBy]) {
+                            return 1;
+                        }
+                        return 0;
+                    });
+                } else {
+
+                    movies.sort(function (a, b) { // asc sort
+                        if (a[sortBy] > b[sortBy]) {
+                            return 1;
+                        }
+                        if (a[sortBy] < b[sortBy]) {
+                            return -1;
+                        }
+                        return 0;
+                    });
+                }
+            } catch (e) {
+                console.log(e);
+                console.error("An exceptions was thrown in sortMovieOrSeries.");
+            }
+        },
+        searchSimilarMovie: function (movie, callback) {
+            movieDB.searchMovie({query: movie}, function (err, res) {
+
+                // if an error occurs
+                if (err != null) {
+                    callback({error: true}); // ends the call
+                    return;
+                }
+
+                movieDB.movieSimilar({id: res.results[0].id}, function (err, res) {
+
+                    // if an error occurs
+                    if (err != null) {
+                        callback({error: true});
+                        return; // ends the call
+                    }
+                    callback(res.results);
+                })
+            });
+        },
 
         searchActor: function (builder, args, callback)
         {
             var firstName = builder.EntityRecognizer.findEntity(args.entities, 'Actor::Firstname');
             var lastName = builder.EntityRecognizer.findEntity(args.entities, 'Actor::Lastname');
             var videoType = builder.EntityRecognizer.findEntity(args.entities, 'VideoType');
-            var genre = builder.EntityRecognizer.findEntity(args.entities, 'Genre').entity;
+            var genre = builder.EntityRecognizer.findEntity(args.entities, 'Genre');
 
             movieDB.searchPerson({query: firstName.entity + ' ' + lastName.entity}, function (err, res) {
 
                 var genreID = -1;
                 var type;
                 if(genre)
-                    genreID = _movieGenreToID(genre);
+                    genreID = _movieGenreToID(genre.entity);
+
+                console.log(genreID);
 
                 if(videoType == 'movies' || videoType == 'movie')
                     type = 'movie';
@@ -101,6 +155,8 @@ module.exports = new function(){
                 {
                     var requestify = require('requestify');
                     var getURL = API_URL + '/discover/' + type + '?with_genres=' + genreID + '&with_cast=' + res.results[0].id + '&certification_country=ger&sort_by=popularity.desc' + '&api_key=' + API_KEY;
+
+                    console.log(getURL);
 
                     if(genreID != -1)
                         getURL = getURL + '&with_genres=' + genreID;
@@ -121,6 +177,7 @@ module.exports = new function(){
                         }
                      });
                 } else {
+                    console.log(res.results);
                     _filterActor(res.results, callback);
                 }
             });
