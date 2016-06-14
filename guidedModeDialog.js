@@ -12,7 +12,7 @@ module.exports = function FreeModeDialog(builder, movieDatabase){
 
     guidedModeDialog.onBegin(function(session, args, next){
         session.send("You choose the guided mode.");
-        session.send("I will ask you a few questions and with you answers I will find the right movie for you."); // should be improved
+        session.send("Sorry, but this mode is currently not implemented."); // should be improved
     });
 
     guidedModeDialog.on('userNeedsHelp', function(session, args, next){

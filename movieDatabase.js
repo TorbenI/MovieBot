@@ -201,7 +201,6 @@ module.exports = new function(){
                         }
                      });
                 } else {
-                    console.log(res.results);
                     _filterActor(res.results, callback);
                 }
             });

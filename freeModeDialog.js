@@ -19,12 +19,12 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
 
     dialogFreeMode.onBegin(function (session, args, next) {
         session.send("You choose the free mode.");
-        session.send("You can tell me statements about movies like \" show me an action movie with Will Smith\" and I will show you action movies with Will Smith."); // should ne imporved
+        session.send("You can tell me statements about movies like \"show me an action movie with Will Smith\" and I will show you action movies with Will Smith."); // should ne imporved
         session.send("I will return the " + CONFIG.NUMBER_OF_RETURN + " best movies that I find.");
     });
 
     dialogFreeMode.on('userNeedsHelp', function (session, args, next) {
-        session.send('This is the free mode help');
+        session.send('This is the help text for the free mode.');
     });
 
     dialogFreeMode.on('considerActor', [
@@ -145,12 +145,26 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
             }]);
 
     function printResults(session, response, mode) {
+
         session.send(' ');
         if (mode == printMode.MOVIE) {
-            session.send("We have found some awesome movies or series for you: ");
+            session.send("We have found some awesome movies for you: ");
             for (var index = 0; index < response.length && index < CONFIG.NUMBER_OF_RETURN; ++index) {
                 var counter = index + 1;
-                session.send("(" + counter + ") " + response[index].title + ' (Popularity: ' + response[index].popularity + ')');
+
+                var msg = "**(" + counter + ") " + response[index].title + "**\n" +
+                    "\n" +
+                    "![](http://image.tmdb.org/t/p/"+CONFIG.RESPONSE_IMAGE_SIZE+"/"+ response[index].poster_path +") \n" +
+                    "\n" +
+                    "Vote Average: " + response[index].vote_average + "\n" +
+                    "\n" +
+                    "Vote Count: " + response[index].vote_count + "\n" +
+                    "\n" +
+                    "Popularity: " + response[index].popularity + "\n" +
+                    "\n" +
+                    "More info:  https://www.themoviedb.org/movie/"+response[index].id+"";
+
+                session.send(msg);
             }
         }
         else if (mode == printMode.SERIES) {
@@ -171,6 +185,6 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
         session.send("Do you have any other questions?");
     }
 
-    //dialogFreeMode.onDefault(builder.DialogAction.send("Default response free mode"));
+    dialogFreeMode.onDefault(builder.DialogAction.send("Sorry, I didn´t understand your question."));
     return dialogFreeMode;
 }
