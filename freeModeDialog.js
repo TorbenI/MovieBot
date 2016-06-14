@@ -73,7 +73,7 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
                 printResults(session, response, printMode.MOVIE);
             }
             else
-                session.send("Sorry :-(. We haven't found any movies with " + firstName.entity + " " + lastName.entity);
+                session.send("Sorry :-(. We haven't found anything");
         });
     }
 
