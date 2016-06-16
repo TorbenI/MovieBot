@@ -19,7 +19,7 @@ module.exports = new function(){
         genreName = genreName.toLowerCase();
 
         if(genreName == 'action')
-            result = 28;
+            result = "28,10759";
         else if(genreName == 'adventure')
             result = 12;
         else if(genreName == 'animation')
@@ -31,7 +31,7 @@ module.exports = new function(){
         else if(genreName == 'drama')
             result = 18;
         else if(genreName == 'fantasy')
-            result = 14;
+            result = "14,10765";
         else if(genreName == 'horror')
             result = 27;
         else if(genreName == 'thriller')
@@ -159,30 +159,33 @@ module.exports = new function(){
             movieDB.searchPerson({query: firstName.entity + ' ' + lastName.entity}, function (err, res) {
                 var genreID = -1;
                 var type;
+
                 if(genre)
                     genreID = _movieGenreToID(genre.entity);
 
-                if(videoType == 'movies' || videoType == 'movie')
+                if(videoType)
+                    videoType = videoType.entity;
+
+                if(videoType == 'movies' || videoType == 'movie' || videoType == 'film' || videoType == 'films')
                     type = 'movie';
                 else if(videoType == 'series' || videoType == 'serie')
                     type = 'tv';
                 else
                     type = 'movie';
 
-                if(res.results.length > 0 && genreID > 0)
-                {
-                    var requestify = require('requestify');
-                    var getURL = API_URL + '/discover/' + type + '?with_genres=' + genreID + '&with_cast=' + res.results[0].id + '&certification_country=ger&sort_by=popularity.desc' + '&api_key=' + API_KEY;
+                var requestify = require('requestify');
+                var getURL = API_URL + '/discover/' + type + '?with_cast=' + res.results[0].id + '&certification_country=ger&sort_by=popularity.desc' + '&api_key=' + API_KEY;
 
-                    if(genreID != -1)
-                        getURL = getURL + '&with_genres=' + genreID;
+                if(res.results.length > 0 && genreID > 0) {
+                    getURL = getURL + '&with_genres=' + genreID;
+                }
 
-                    if(releaseYear)
-                        getURL = getURL + '&primary_release_year=' + releaseYear.entity;
+                if(res.results.length > 0 && releaseYear) {
+                    getURL = getURL + '&primary_release_year=' + releaseYear.entity;
+                }
 
-                    console.log(getURL);
-
-                     requestify.get(getURL).then(function(response) {
+                console.log(getURL);
+                    requestify.get(getURL).then(function(response) {
                         // Get the response body
                         var body = response.getBody();
                         var movieResult = body.results;
@@ -193,18 +196,13 @@ module.exports = new function(){
                                 result.push(movieResult[index]);
                             }
 
-                        return callback(result);
+                            return callback(result);
                         }
-                         else {
-                            console.log('Error');
+                        else {
                             return callback([]);
                         }
-                     });
-                } else {
-                    _filterActor(res.results, callback);
-                }
+                    });
             });
-            // whatever
         },
 
         //Example: /discover/movie?primary_release_date.gte=2014-09-15&primary_release_date.lte=2014-10-22

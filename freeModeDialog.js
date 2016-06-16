@@ -12,15 +12,22 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
         ACTOR: 2
     };
 
-
     var dialogFreeMode = new builder.LuisDialog(model);
 
     dialogFreeMode.setThreshold(CONFIG.THRESHOLD); // the default value is 0.1! - this is too damn low!
 
     dialogFreeMode.onBegin(function (session, args, next) {
-        session.send("You choose the free mode.");
-        session.send("You can tell me statements about movies like \"show me an action movie with Will Smith\" and I will show you action movies with Will Smith."); // should ne imporved
-        session.send("I will return the " + CONFIG.NUMBER_OF_RETURN + " best movies that I find.");
+
+        if (!session.userData.firstRun) {
+            // Send the user through the first run experience
+            session.userData.firstRun = true;
+            session.send("You choose the free mode.");
+            session.send("You can tell me statements about movies like \"show me an action movie with Will Smith\" and I will show you action movies with Will Smith."); // should ne imporved
+            session.send("I will return the " + CONFIG.NUMBER_OF_RETURN + " best movies that I find.");
+        } else {
+            session.send("Do you have another question?");
+        }
+
     });
 
     dialogFreeMode.on('userNeedsHelp', function (session, args, next) {
@@ -38,15 +45,8 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
 
             movieDatabase.bestMoviesInYear(builder, function (response) {
                 if (response.length > 0) { //Output result
-                    if (videoType.entity == 'movies' || videoType.entity == 'movie') {
-                        printResults(session, response, printMode.MOVIE);
-                    }
-                    else if (videoType.entity == 'series' || videoType.entity == 'serie') {
-                        printResults(session, response, printMode.SERIES);
-                    }
-                    else {
-                        printResults(session, response, printMode.MOVIE);
-                    }
+
+                    printWithVideoType(session,response, videoType);
                 }
                 else
                     session.send("Sorry :-(. We haven't found anything for you.");
@@ -67,10 +67,11 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
 
     //Call the MovieDB and search for the 3 best movies of the actor
     function searchForActor(session, args, builder) {
-        console.log('SearchForActor');
         movieDatabase.searchActor(builder, args, function (response) {
             if (response.length > 0) { //Output result
-                printResults(session, response, printMode.MOVIE);
+
+                var videoType = builder.EntityRecognizer.findEntity(args.entities, 'VideoType');
+                printWithVideoType(session, response, videoType);
             }
             else
                 session.send("Sorry :-(. We haven't found anything");
@@ -144,6 +145,16 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
             }
             }]);
 
+    function printWithVideoType(session, response, videoType) {
+        if (videoType.entity == 'movies' || videoType.entity == 'movie' || videoType.entity == 'film' || videoType.entity  == 'films') {
+            printResults(session, response, printMode.MOVIE);
+        }
+        else if (videoType.entity == 'series' || videoType.entity == 'serie') {
+            printResults(session, response, printMode.SERIES);
+        }
+        else
+            printResults(session, response, printMode.MOVIE);
+    }
     function printResults(session, response, mode) {
 
         session.send(' ');
