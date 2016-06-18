@@ -47,8 +47,8 @@ movieBot.add(MODE.GUIDED, new guidedModeDialog(builder, movieDatabase));
 rootDialog.onDefault(builder.DialogAction.send("I am sorry. I don´t know what do you mean. Please choose a mode."));
 /* on begin rootDialog*/
 rootDialog.onBegin(function (session, args, next) {
-    session.send('Hi! I am the awesome Moviebot. If you want to see a movie but aren´t sure which movie. You should simply aks me. I offer two ways of helping, a guided mode and free mode. Its your choice which mode do you want!');
-    session.send('Just tell me which mode you want. The free mode or the guided mode?');
+    session.send('Hi! I am the awesome MovieBot. \n\nNice to meet you.\n\n' + 'I can help you to find the perfect movie or series.' +
+        ' I offer two ways of help. The **guided mode** (currently not implemented) and the **free mode** (beta).\n\n' + 'Which mode do you want to use? :)');
 });
 
 /* this is the help rootDialog*/

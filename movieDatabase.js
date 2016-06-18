@@ -212,7 +212,7 @@ module.exports = new function(){
 
             var currentDate = dateFormat(new Date(), "yyyy-mm-dd");
             var tempDate = new Date();
-            tempDate.setDate(tempDate.getDate()-7);
+            tempDate.setDate(tempDate.getDate()-21);
             var oldDate = dateFormat(tempDate, "yyyy-mm-dd");
 
             requestify.get(API_URL + '/discover/movie?primary_release_date.gte=' + oldDate + '&certification_country=ger&primary_release_date.lte='+ currentDate +'&api_key=' + API_KEY).then(function(response) {
@@ -243,14 +243,21 @@ module.exports = new function(){
             if(genre)
                 genreID = _movieGenreToID(genre.entity);
 
-            if(videoType == 'movies' || videoType == 'movie')
+            videoType = videoType.entity;
+
+            if(videoType == 'movies' || videoType == 'movie' || videoType == 'film' || videoType == 'films')
                 type = 'movie';
             else if(videoType == 'series' || videoType == 'serie')
                 type = 'tv';
             else
                 type = 'movie';
 
-            var getURL = API_URL + '/discover/' + type + '?primary_release_year=' + releaseYear.entity + '&certification_country=ger&sort_by=popularity.desc' + '&api_key=' + API_KEY;
+            var primaryRelease = 'primary_release_year';
+
+            if(type == 'tv')
+                primaryRelease = 'first_air_date_year';
+
+            var getURL = API_URL + '/discover/' + type + '?' + primaryRelease + '=' + releaseYear.entity + '&certification_country=ger&sort_by=popularity.desc' + '&api_key=' + API_KEY;
 
             if(genreID != -1)
                 getURL = getURL + '&with_genres=' + genreID;

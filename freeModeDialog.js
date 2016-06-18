@@ -9,7 +9,8 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
     var printMode = {
         MOVIE: 0,
         SERIES: 1,
-        ACTOR: 2
+        ACTOR: 2,
+        CINEMA: 3
     };
 
     var dialogFreeMode = new builder.LuisDialog(model);
@@ -21,17 +22,32 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
         if (!session.userData.firstRun) {
             // Send the user through the first run experience
             session.userData.firstRun = true;
-            session.send("You choose the free mode.");
-            session.send("You can tell me statements about movies like \"show me an action movie with Will Smith\" and I will show you action movies with Will Smith."); // should ne imporved
-            session.send("I will return the " + CONFIG.NUMBER_OF_RETURN + " best movies that I find.");
+            session.send("You have chosen the free mode.\n\n" + "In this mode you can ask me different questions for movies and series.\n\n"
+                + "You can also ask me for help or examples if you don't know what to do :).\n\n" + "What's your first question?");
+            //session.send("I will return the " + CONFIG.NUMBER_OF_RETURN + " best movies that I find.");
         } else {
-            session.send("Do you have another question?");
+            session.send("Sorry I couldn't recognize your question.\n\n" + "Do you have another question?");
         }
-
     });
 
     dialogFreeMode.on('userNeedsHelp', function (session, args, next) {
-        session.send('This is the help text for the free mode.');
+        session.send('This is the MovieBot help. You can ask me questions with different parameters. \n\n' +
+            'At the moment I am supporting the following questions: \n\n' +
+            'Movies or series with actor, genre, year of release\n\n' +
+            'Current movies in cinema\n\n' +
+            'Similar movies/series like ...\n\n' +
+            'Best movies/series of a year\n\n' +
+            'You can also ask me for some examples. Have fun :)');
+    });
+
+    dialogFreeMode.on('userNeedsExamples', function (session, args, next) {
+        session.send('Here are some examples how to use the MovieBot: \n\n' +
+            'Show me some movies with Will Smith\n\n' +
+            'Show me some action movies with Will Smith\n\n' +
+            'Can you tell me an action movie with Bruce Willis from 2003\n\n' +
+            'I would like to see the current movies in cinema\n\n' +
+            'What are the best series from 2000\n\n' +
+            'I like to see some similar movies to Rambo');
     });
 
     dialogFreeMode.on('considerActor', [
@@ -43,25 +59,21 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
     dialogFreeMode.on('bestMoviesInYear', [
         function (session, args, next) {
 
-            movieDatabase.bestMoviesInYear(builder, function (response) {
+            movieDatabase.bestMoviesInYear(builder, args, function (response) {
                 if (response.length > 0) { //Output result
 
+                    var videoType = builder.EntityRecognizer.findEntity(args.entities, 'VideoType');
                     printWithVideoType(session,response, videoType);
                 }
                 else
-                    session.send("Sorry :-(. We haven't found anything for you.");
+                    session.send("Sorry :-(. We haven't found anything for you.\n\nDo you have any other questions?");
             });
-        },
-        function (session, results) {
-            session.send("Do you have any other questions?");
         }
     ]);
 
     dialogFreeMode.on('showCurrentCinemaMovies', function (session, args, next) {
-        session.send('Loading the current movies in cinema. Please wait a second.');
         movieDatabase.moviesInTheatre(function (response) {
-            session.send('Here is your result:');
-            printResults(session, response, printMode.MOVIE);
+            printResults(session, response, printMode.CINEMA);
         });
     });
 
@@ -117,7 +129,6 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
             }else{
                 var video = result.response;
             }
-            session.send('Ok. Let me see if I find a '+video.videoType+' that is similar to ' + video.videoName + '');
 
             /* depends on the video type which query should be performed*/
             if(video.videoType.toLowerCase().match(/^seri/)){
@@ -130,17 +141,17 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
                 });
             }
 
-            /* this funcitons handles the response*/
+            /* this functions handles the response*/
             function responseFunction(response, printMode){
                 if (!response.error) {
                     if (response.length > 0) {
                         movieDatabase.sortMovieOrSeries(response, "popularity", true); // sorts the result desc
                         printResults(session, response, printMode);
                     } else {
-                        session.send("I´m sorry. I couldn´t find any similar "+video.videoType+".");
+                        session.send("I´m sorry. I couldn´t find any stuff similar to "+video.videoType+".");
                     }
                 } else {
-                    session.send("Oh I´m sorry. Something unexpected happend. I couldn´t perform a search.");
+                    session.send("Oh I´m sorry. Something unexpected happened. I couldn´t perform a search.");
                 }
             }
             }]);
@@ -157,13 +168,13 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
     }
     function printResults(session, response, mode) {
 
-        session.send(' ');
+        var printString = '';
         if (mode == printMode.MOVIE) {
-            session.send("We have found some awesome movies for you: ");
+            printString = 'We have found some awesome movies for you: \n\n';
             for (var index = 0; index < response.length && index < CONFIG.NUMBER_OF_RETURN; ++index) {
                 var counter = index + 1;
 
-                var msg = "**(" + counter + ") " + response[index].title + "**\n" +
+                var msg = "\n\n**(" + counter + ") " + response[index].title + "**\n" +
                     "\n" +
                     "![](http://image.tmdb.org/t/p/"+CONFIG.RESPONSE_IMAGE_SIZE+"/"+ response[index].poster_path +") \n" +
                     "\n" +
@@ -175,25 +186,46 @@ module.exports = function FreeModeDialog(builder, movieDatabase) {
                     "\n" +
                     "More info:  https://www.themoviedb.org/movie/"+response[index].id+"";
 
-                session.send(msg);
+                printString = printString + msg;
             }
         }
         else if (mode == printMode.SERIES) {
-            session.send("We have found some awesome series for you: ");
+            printString = 'We have found some awesome series for you: \n\n';
             for (var index = 0; index < response.length && index < CONFIG.NUMBER_OF_RETURN; ++index) {
                 var counter = index + 1;
-                session.send("(" + counter + ") " + response[index].name + ' (Popularity: ' + response[index].popularity + ')');
+
+                var msg = "\n\n**(" + counter + ") " + response[index].name + "**\n" +
+                    "\n" +
+                    "![](http://image.tmdb.org/t/p/"+CONFIG.RESPONSE_IMAGE_SIZE+"/"+ response[index].poster_path +") \n" +
+                    "\n" +
+                    "Vote Average: " + response[index].vote_average + "\n" +
+                    "\n" +
+                    "Vote Count: " + response[index].vote_count + "\n" +
+                    "\n" +
+                    "Popularity: " + response[index].popularity + "\n" +
+                    "\n" +
+                    "More info:  https://www.themoviedb.org/movie/"+response[index].id+"";
+
+                printString = printString + msg;
+            }
+        }
+        else if(mode == printMode.CINEMA) {
+            printString = 'Here are the current movies in cinema(last 3 weeks): \n\n';
+            for (var index = 0; index < response.length && index < 10; ++index) {
+                var counter = index + 1;
+                printString = printString + "(" + counter + ") " + response[index].title + ' (Popularity: ' + response[index].popularity + ')\n\n';
             }
         }
         else {
-            session.send("We have found some awesome stuff for you: ");
+            printString = "We have found some awesome stuff for you:\n\n";
             for (var index = 0; index < response.length && index < CONFIG.NUMBER_OF_RETURN; ++index) {
                 var counter = index + 1;
-                session.send("(" + counter + ") " + response[index].title + ' (Popularity: ' + response[index].popularity + ')');
+                printString = printString + "(" + counter + ") " + response[index].title + ' (Popularity: ' + response[index].popularity + ')\n\n';
             }
         }
 
-        session.send("Do you have any other questions?");
+        printString = printString + '\n\nDo you have another question?';
+        session.send(printString);
     }
 
     dialogFreeMode.onDefault(builder.DialogAction.send("Sorry, I didn´t understand your question."));
