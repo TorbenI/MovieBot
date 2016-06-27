@@ -1,7 +1,3 @@
-/**
- * Created by Fabian on 25.05.2016.
- */
-
 module.exports = function FreeModeDialog(builder, movieDatabase) {
 
     var model = 'https://api.projectoxford.ai/luis/v1/application?id=85c6e28d-607b-4a71-87e6-c694f038eb6e&subscription-key=a0163ecd7c864fd290eef12ce9269e70';

@@ -1,7 +1,3 @@
-/**
- * Created by torbenindorf on 17.05.16.
- */
-
 var API_URL = 'http://api.themoviedb.org/3';
 var API_KEY = '89298244cdf30c4264e81888dc561a61';
 var movieDB = require('moviedb')(API_KEY);

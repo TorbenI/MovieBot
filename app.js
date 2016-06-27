@@ -1,6 +1,3 @@
-/**
- * Created by torbenindorf on 12.05.16.
- */
 /* dependencies*/
 var restify = require('restify');
 var builder = require('botbuilder');
@@ -47,7 +44,7 @@ movieBot.add(MODE.GUIDED, new guidedModeDialog(builder, movieDatabase));
 rootDialog.onDefault(builder.DialogAction.send("I am sorry. I don´t know what do you mean. Please choose a mode."));
 /* on begin rootDialog*/
 rootDialog.onBegin(function (session, args, next) {
-    session.send('Hi! I am the awesome MovieBot. \n\nNice to meet you.\n\n' + 'I can help you to find the perfect movie or series.' +
+    session.send('Hi! I am the awesome MovieBot. \n\nNice to meet you.\n\n' + 'I want to help you to find the perfect movie or series.' +
         ' I offer two ways of help. The **guided mode** (currently not implemented) and the **free mode** (beta).\n\n' + 'Which mode do you want to use? :)');
 });
 
@@ -69,69 +66,6 @@ rootDialog.on('userChoosesFreeMode', function (session, args, next) {
 rootDialog.on('considerGenreActor', function (session, args, next) {
     session.send('Consider Genre and Actor');
 });
-
-/* have to be shifted to the mode dialogs */
-
-/*
- movieBot.add('/yourName', [
- function (session) {
- builder.Prompts.text(session, "Hello... What's your name?");
- },
- function (session, results) {
- session.userData.name = results.response;
- session.replaceDialog('/selectMode');
- }
- ]);
-
- movieBot.add('/selectMode', [
- function (session) {
- session.send("Hi %s. Nice to meet you.", session.userData.name);
- builder.Prompts.text(session, "Which mode do you want to use?");
- },
- function (session, results) {
-
- if(results.response == 'Free mode' || results.response == 'Free Mode')
- session.botMode = 'Free'
- else if(results.response == 'Guided mode' || results.response == 'Guide Mode')
- session.botMode = 'Guided'
-
- session.send("You have choosen the %s Mode", session.botMode);
-
- if(session.botMode == 'Guided') {
- session.replaceDialog('/guidedMode');
- }
- else if(session.botMode == 'Free') {
- session.replaceDialog('/freeMode');
- }
- }
- ]);
-
- movieBot.add('/guidedMode', [
- function (session) {
- builder.Prompts.text(session, "How can I help you?");
-
- },
- function (session, results) {
-
- session.replaceDialog('/');
- }
- ]);
-
- movieBot.add('/freeMode', rootDialog, [
- ]);
- */
-/*
- movieBot.add('/', [
- function (session) {
-
- },
- function (session, results) {
-
- session.replaceDialog('/');
- }
- ]);
- );
- */
 
 // Setup Restify Server
 var server = restify.createServer();
